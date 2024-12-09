@@ -72,7 +72,7 @@
         }
  
         // Load CSV and initialize charts
-        fetch("C:\Users\omamy\OneDrive\Documents\School_Files\Sem1\Data-1203 Business_Analysis_Assessments\Assignments\test\knoxCopy.csv")
+        fetch("knoxCopy.csv")
             .then(response => response.text())
             .then(csv => {
                 const data = parseCSVData(csv);
