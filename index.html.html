@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sales Performance Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .dashboard {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .chart-container {
+            flex: 1 1 calc(50% - 20px);
+            max-width: calc(50% - 20px);
+        }
+        .line-chart-container {
+            flex: 1 1 100%;
+            max-width: 100%;
+        }
+        canvas {
+            background: #f8f8f8;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+</style>
+</head>
+<body>
+<h1>Sales Performance Dashboard</h1>
+<div class="dashboard">
+<!-- Line Chart: Total Sales and Profit Over Time -->
+<div class="line-chart-container">
+<canvas id="lineChart"></canvas>
+</div>
+ 
+        <!-- Bar Chart: Sales Performance by Product Type -->
+<div class="chart-container">
+<canvas id="barChart"></canvas>
+</div>
+ 
+        <!-- Heatmap: Geographic Sales Distribution -->
+<div class="chart-container">
+<canvas id="geoChart"></canvas>
+</div>
+ 
+        <!-- Budget vs Actual Performance -->
+<div class="chart-container">
+<canvas id="budgetChart"></canvas>
+</div>
+ 
+        <!-- Inventory Analysis -->
+<div class="chart-container">
+<canvas id="inventoryChart"></canvas>
+</div>
+</div>
+ 
+    <script>
+        // Sample function to process CSV data
+        function parseCSVData(csv) {
+            const rows = csv.split("\n").map(row => row.split(","));
+            const headers = rows.shift();
+            return rows.map(row => {
+                let obj = {};
+                headers.forEach((header, index) => obj[header.trim()] = row[index].trim());
+                return obj;
+            });
+        }
+ 
+        // Load CSV and initialize charts
+        fetch("C:\Users\omamy\OneDrive\Documents\School_Files\Sem1\Data-1203 Business_Analysis_Assessments\Assignments\test\knoxCopy.csv")
+            .then(response => response.text())
+            .then(csv => {
+                const data = parseCSVData(csv);
+ 
+                // Prepare datasets for each chart
+                const labels = data.map(row => row["Date"]);
+                const sales = data.map(row => +row["Actual Sales (Qty)"]);
+                const profit = data.map(row => +row["Actual Profit ($)"]);
+                const productTypes = [...new Set(data.map(row => row["Product Type"]))];
+                const salesByProduct = productTypes.map(type => 
+                    data.filter(row => row["Product Type"] === type)
+                        .reduce((sum, row) => sum + +row["Actual Sales (Qty)"], 0)
+                );
+ 
+                // Line Chart: Total Sales and Profit Over Time
+                new Chart(document.getElementById("lineChart"), {
+                    type: "line",
+                    data: {
+                        labels,
+                        datasets: [
+                            {
+                                label: "Sales",
+                                data: sales,
+                                borderColor: "blue",
+                                fill: false
+                            },
+                            {
+                                label: "Profit",
+                                data: profit,
+                                borderColor: "green",
+                                fill: false
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { position: "top" },
+                            tooltip: { enabled: true }
+                        }
+                    }
+                });
+ 
+                // Bar Chart: Sales Performance by Product Type
+                new Chart(document.getElementById("barChart"), {
+                    type: "bar",
+                    data: {
+                        labels: productTypes,
+                        datasets: [{
+                            label: "Sales by Product Type",
+                            data: salesByProduct,
+                            backgroundColor: "orange"
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: { enabled: true }
+                        }
+                    }
+                });
+ 
+                // Additional charts (geoChart, budgetChart, inventoryChart) would follow similar logic
+                // Populate datasets for each chart and configure them here...
+            })
+            .catch(error => console.error("Error loading or processing CSV:", error));
+</script>
+</body>
+</html>
