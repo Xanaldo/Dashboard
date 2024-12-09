@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sales Performance Dashboard</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Performance Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
@@ -28,66 +28,54 @@
             border: 1px solid #ccc;
             border-radius: 5px;
         }
-</style>
+    </style>
 </head>
 <body>
-<h1>Sales Performance Dashboard</h1>
-<div class="dashboard">
-<!-- Line Chart: Total Sales and Profit Over Time -->
-<div class="line-chart-container">
-<canvas id="lineChart"></canvas>
-</div>
- 
-        <!-- Bar Chart: Sales Performance by Product Type -->
-<div class="chart-container">
-<canvas id="barChart"></canvas>
-</div>
- 
-        <!-- Heatmap: Geographic Sales Distribution -->
-<div class="chart-container">
-<canvas id="geoChart"></canvas>
-</div>
- 
-        <!-- Budget vs Actual Performance -->
-<div class="chart-container">
-<canvas id="budgetChart"></canvas>
-</div>
- 
-        <!-- Inventory Analysis -->
-<div class="chart-container">
-<canvas id="inventoryChart"></canvas>
-</div>
-</div>
- 
+    <h1>Sales Performance Dashboard</h1>
+    <div class="dashboard">
+        <!-- Line Chart -->
+        <div class="line-chart-container">
+            <canvas id="lineChart"></canvas>
+        </div>
+
+        <!-- Bar Chart -->
+        <div class="chart-container">
+            <canvas id="barChart"></canvas>
+        </div>
+    </div>
+
     <script>
-        // Sample function to process CSV data
+        // Function to parse CSV data
         function parseCSVData(csv) {
-            const rows = csv.split("\n").map(row => row.split(","));
+            const rows = csv.trim().split("\n").map(row => row.split(","));
             const headers = rows.shift();
             return rows.map(row => {
                 let obj = {};
-                headers.forEach((header, index) => obj[header.trim()] = row[index].trim());
+                headers.forEach((header, index) => obj[header.trim()] = row[index]?.trim() || "");
                 return obj;
             });
         }
- 
+
         // Load CSV and initialize charts
-        fetch("knoxCopy.csv")
-            .then(response => response.text())
+        fetch("knoxCopy.csv") // Ensure this file is in the same directory
+            .then(response => {
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                return response.text();
+            })
             .then(csv => {
                 const data = parseCSVData(csv);
- 
-                // Prepare datasets for each chart
+
+                // Prepare datasets
                 const labels = data.map(row => row["Date"]);
-                const sales = data.map(row => +row["Actual Sales (Qty)"]);
-                const profit = data.map(row => +row["Actual Profit ($)"]);
+                const sales = data.map(row => parseFloat(row["Actual Sales (Qty)"]) || 0);
+                const profit = data.map(row => parseFloat(row["Actual Profit ($)"]) || 0);
                 const productTypes = [...new Set(data.map(row => row["Product Type"]))];
-                const salesByProduct = productTypes.map(type => 
+                const salesByProduct = productTypes.map(type =>
                     data.filter(row => row["Product Type"] === type)
-                        .reduce((sum, row) => sum + +row["Actual Sales (Qty)"], 0)
+                        .reduce((sum, row) => sum + (parseFloat(row["Actual Sales (Qty)"]) || 0), 0)
                 );
- 
-                // Line Chart: Total Sales and Profit Over Time
+
+                // Line Chart
                 new Chart(document.getElementById("lineChart"), {
                     type: "line",
                     data: {
@@ -97,49 +85,49 @@
                                 label: "Sales",
                                 data: sales,
                                 borderColor: "blue",
-                                fill: false
+                                fill: false,
                             },
                             {
                                 label: "Profit",
                                 data: profit,
                                 borderColor: "green",
-                                fill: false
-                            }
-                        ]
+                                fill: false,
+                            },
+                        ],
                     },
                     options: {
                         responsive: true,
                         plugins: {
                             legend: { position: "top" },
-                            tooltip: { enabled: true }
-                        }
-                    }
+                            tooltip: { enabled: true },
+                        },
+                    },
                 });
- 
-                // Bar Chart: Sales Performance by Product Type
+
+                // Bar Chart
                 new Chart(document.getElementById("barChart"), {
                     type: "bar",
                     data: {
                         labels: productTypes,
-                        datasets: [{
-                            label: "Sales by Product Type",
-                            data: salesByProduct,
-                            backgroundColor: "orange"
-                        }]
+                        datasets: [
+                            {
+                                label: "Sales by Product Type",
+                                data: salesByProduct,
+                                backgroundColor: "orange",
+                            },
+                        ],
                     },
                     options: {
                         responsive: true,
                         plugins: {
                             legend: { display: false },
-                            tooltip: { enabled: true }
-                        }
-                    }
+                            tooltip: { enabled: true },
+                        },
+                    },
                 });
- 
-                // Additional charts (geoChart, budgetChart, inventoryChart) would follow similar logic
-                // Populate datasets for each chart and configure them here...
             })
             .catch(error => console.error("Error loading or processing CSV:", error));
-</script>
+    </script>
 </body>
 </html>
+
